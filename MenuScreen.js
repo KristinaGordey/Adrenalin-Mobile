@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
 export default function MenuScreen({ route, navigation }) {
-  const { username } = route.params;
+  const { username, userId } = route.params || {};
+  console.log("userId из MenuScreen:", userId);
+
   const [showMessage, setShowMessage] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -12,6 +14,9 @@ export default function MenuScreen({ route, navigation }) {
     }, 3000);
 
     return () => clearTimeout(timer);
+  }, []);
+  useEffect(() => {
+    console.log("userId из MenuScreen:", userId);
   }, []);
 
   const toggleTheme = () => {
@@ -27,13 +32,10 @@ export default function MenuScreen({ route, navigation }) {
       ) : (
         <>
           <Text style={styles.header}>MyAdrenalin</Text>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Контакты</Text>
-          </TouchableOpacity>
-          {/* Кнопка для перехода на экран дневника тренировок */}
+
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("DiaryTraining")}
+            onPress={() => navigation.navigate("DiaryTraining", { userId })}
           >
             <Text style={styles.buttonText}>Дневник тренировок</Text>
           </TouchableOpacity>

@@ -7,43 +7,31 @@ import {
   TouchableOpacity,
 } from "react-native";
 import axios from "axios";
-//import AsyncStorage from "@react-native-async-storage/async-storage";
 
-function LoginScreen({ navigation }) {
+function RegisterScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    const loginData = { username, password };
+  const handleRegister = () => {
+    const userData = { username, password };
 
-    try {
-      const response = await axios.post(
-        "http://10.0.2.2:5000/login",
-        loginData
-      );
-      console.log("Login successful:", response.data);
-
-      const { message, userId, username } = response.data;
-
-      if (message === "Login successful") {
-        // Убедись, что передаешь userId и username в navigation
-        navigation.navigate("Menu", {
-          username, // Передаем username
-          userId, // Передаем userId
-        });
-        console.log(userId);
-      }
-    } catch (error) {
-      console.error(
-        "Login error:",
-        error.response ? error.response.data : error.message
-      );
-    }
+    axios
+      .post("http://10.0.2.2:5000/register", userData)
+      .then((response) => {
+        console.log("Registration successful:", response.data);
+        navigation.navigate("Login");
+      })
+      .catch((error) => {
+        console.error(
+          "Registration error:",
+          error.response ? error.response.data : error.message
+        );
+      });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Вход</Text>
+      <Text style={styles.header}>Регистрация</Text>
 
       <TextInput
         style={styles.input}
@@ -55,17 +43,17 @@ function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Пароль"
-        secureTextEntry={true}
+        secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Войти</Text>
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Зарегистрироваться</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.link}>Нет аккаунта? Зарегистрироваться</Text>
+      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -100,6 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     width: "100%",
+    marginBottom: 10,
   },
   buttonText: {
     color: "#fff",
@@ -111,4 +100,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

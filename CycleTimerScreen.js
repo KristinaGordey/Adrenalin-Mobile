@@ -7,7 +7,8 @@ import {
   TextInput,
   Animated,
 } from "react-native";
-import ProgressCircle from "./ProgressCircle"; // путь к файлу
+import ProgressCircle from "./ProgressCircle";
+import { Audio } from "expo-av";
 
 const CycleTimerScreen = () => {
   const [workTime, setWorkTime] = useState(30);
@@ -22,14 +23,20 @@ const CycleTimerScreen = () => {
   const [status, setStatus] = useState("Тренировка");
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
-
   const cycleRef = useRef(currentCycle);
   const isRestingRef = useRef(isResting);
+  const soundRef = useRef(null);
 
   useEffect(() => {
     cycleRef.current = currentCycle;
     isRestingRef.current = isResting;
   }, [currentCycle, isResting]);
+
+  useEffect(() => {
+    return () => {
+      stopSound(); // Ensure sound stops when component unmounts
+    };
+  }, []);
 
   useEffect(() => {
     let timer;
@@ -63,6 +70,15 @@ const CycleTimerScreen = () => {
     return () => clearInterval(timer);
   }, [isRunning, isPaused, workTime, restTime, cycles]);
 
+  // 🔊 Контроль звука в зависимости от статуса
+  useEffect(() => {
+    if (status === "Тренировка") {
+      playSound();
+    } else {
+      stopSound();
+    }
+  }, [status]);
+
   useEffect(() => {
     if (status === "Тренировка") {
       Animated.loop(
@@ -95,9 +111,11 @@ const CycleTimerScreen = () => {
 
   const stopTimer = () => {
     setIsPaused(true);
+    stopSound();
   };
 
   const resetTimer = () => {
+    stopSound();
     setIsRunning(false);
     setIsPaused(false);
     setIsResting(false);
@@ -112,15 +130,44 @@ const CycleTimerScreen = () => {
     return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
   };
 
+  const playSound = async () => {
+    try {
+      if (soundRef.current) {
+        const status = await soundRef.current.getStatusAsync();
+        if (status.isPlaying) return;
+      }
+
+      const { sound } = await Audio.Sound.createAsync(
+        require("./assets/timer.mp3"),
+        { isLooping: true }
+      );
+      soundRef.current = sound;
+      await sound.playAsync();
+    } catch (error) {
+      console.warn("Ошибка воспроизведения звука:", error);
+    }
+  };
+
+  const stopSound = async () => {
+    try {
+      if (soundRef.current) {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
+    } catch (error) {
+      console.warn("Ошибка остановки звука:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Таймер тренировки</Text>
-      {/* Передаем актуальный прогресс времени для тренировки или отдыха */}
       <ProgressCircle
-        key={currentCycle} // Добавляем ключ для перерисовки
+        key={currentCycle}
         progress={time / (isResting ? restTime : workTime)}
-        radius={80} // Можно настроить радиус круга
-        strokeWidth={10} // Можно настроить толщину обводки
+        radius={80}
+        strokeWidth={10}
       />
 
       <Animated.Text

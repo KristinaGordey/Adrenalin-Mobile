@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRoute } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -8,8 +9,8 @@ import {
   Modal,
   TouchableOpacity,
   FlatList,
-  ScrollView,
 } from "react-native";
+import axios from "axios";
 
 const trainingTypes = [
   "Кардиотренировка",
@@ -60,6 +61,8 @@ const trainingTypes = [
 ];
 
 export default function DiaryTraining() {
+  const route = useRoute();
+  const { userId } = route.params || {};
   const [selectedTrainingType, setSelectedTrainingType] = useState("");
   const [duration, setDuration] = useState("");
   const [intensity, setIntensity] = useState("");
@@ -67,23 +70,67 @@ export default function DiaryTraining() {
   const [modalVisible, setModalVisible] = useState(false);
   const [trainingHistory, setTrainingHistory] = useState([]);
 
-  const handleSave = () => {
+  // Функция для сохранения тренировки
+  const handleSave = async () => {
+    if (!selectedTrainingType || !duration || !intensity) {
+      alert("Пожалуйста, заполните все поля!");
+      return;
+    }
+
+    if (isNaN(intensity) || intensity < 1 || intensity > 10) {
+      alert("Интенсивность должна быть числом от 1 до 10.");
+      return;
+    }
+    if (!userId) {
+      alert("Ошибка: пользователь не определён.");
+      return;
+    }
+
     const newEntry = {
-      id: Date.now().toString(),
-      date: new Date().toLocaleString(),
+      userId,
       type: selectedTrainingType,
-      duration,
-      intensity,
+      duration: parseInt(duration),
+      intensity: parseInt(intensity),
       review,
     };
+    console.log(newEntry);
 
-    setTrainingHistory((prevHistory) => [newEntry, ...prevHistory]);
+    try {
+      // Отправляем данные на сервер для сохранения
+      await axios.post("http://10.0.2.2:5000/training", newEntry);
+      alert("Тренировка успешно сохранена!");
 
-    setSelectedTrainingType("");
-    setDuration("");
-    setIntensity("");
-    setReview("");
+      // Очистка полей формы
+      setSelectedTrainingType("");
+      setDuration("");
+      setIntensity("");
+      setReview("");
+
+      // Обновляем историю тренировок
+      fetchTrainingHistory();
+    } catch (error) {
+      console.error("Ошибка при сохранении тренировки:", error);
+      alert("Ошибка при сохранении тренировки");
+    }
   };
+
+  // Функция для загрузки истории тренировок
+  const fetchTrainingHistory = async () => {
+    try {
+      const response = await axios.get(
+        `http://10.0.2.2:5000/training/${userId}`
+      );
+      setTrainingHistory(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке истории тренировок:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchTrainingHistory();
+    }
+  }, [userId]);
 
   const renderTrainingType = ({ item }) => (
     <TouchableOpacity
@@ -98,7 +145,7 @@ export default function DiaryTraining() {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.header}>Дневник тренировок</Text>
 
       <Text style={styles.label}>Тип тренировки:</Text>
@@ -118,7 +165,7 @@ export default function DiaryTraining() {
             <FlatList
               data={trainingTypes}
               renderItem={renderTrainingType}
-              keyExtractor={(item) => item}
+              keyExtractor={(item, index) => index.toString()} // Используем индекс для уникальности
               contentContainerStyle={{ paddingBottom: 20 }}
             />
             <Button title="Отмена" onPress={() => setModalVisible(false)} />
@@ -158,21 +205,27 @@ export default function DiaryTraining() {
       {trainingHistory.length === 0 ? (
         <Text style={styles.noHistory}>Пока нет записей</Text>
       ) : (
-        trainingHistory.map((entry) => (
-          <View key={entry.id} style={styles.historyItem}>
-            <Text style={styles.historyText}>Дата: {entry.date}</Text>
-            <Text style={styles.historyText}>Тип: {entry.type}</Text>
-            <Text style={styles.historyText}>
-              Длительность: {entry.duration} мин.
-            </Text>
-            <Text style={styles.historyText}>
-              Интенсивность: {entry.intensity}/10
-            </Text>
-            <Text style={styles.historyText}>Отзыв: {entry.review || "—"}</Text>
-          </View>
-        ))
+        <FlatList
+          data={trainingHistory}
+          renderItem={({ item }) => (
+            <View style={styles.historyItem}>
+              <Text style={styles.historyText}>Дата: {item.date}</Text>
+              <Text style={styles.historyText}>Тип: {item.type}</Text>
+              <Text style={styles.historyText}>
+                Длительность: {item.duration} мин.
+              </Text>
+              <Text style={styles.historyText}>
+                Интенсивность: {item.intensity}/10
+              </Text>
+              <Text style={styles.historyText}>
+                Отзыв: {item.review || "—"}
+              </Text>
+            </View>
+          )}
+          keyExtractor={(item) => item.date} // Используем дату как уникальный идентификатор
+        />
       )}
-    </ScrollView>
+    </View>
   );
 }
 
