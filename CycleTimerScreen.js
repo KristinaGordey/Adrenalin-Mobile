@@ -70,14 +70,18 @@ const CycleTimerScreen = () => {
     return () => clearInterval(timer);
   }, [isRunning, isPaused, workTime, restTime, cycles]);
 
-  // 🔊 Контроль звука в зависимости от статуса
   useEffect(() => {
-    if (status === "Тренировка") {
+    if (
+      isRunning &&
+      !isPaused &&
+      status === "Тренировка" &&
+      !soundRef.current
+    ) {
       playSound();
-    } else {
+    } else if (!isRunning || status !== "Тренировка") {
       stopSound();
     }
-  }, [status]);
+  }, [status, isRunning, isPaused]);
 
   useEffect(() => {
     if (status === "Тренировка") {

@@ -5,6 +5,7 @@ import {
   TextInput,
   SafeAreaView,
   TouchableOpacity,
+  ImageBackground,
 } from "react-native";
 import axios from "axios";
 
@@ -30,42 +31,53 @@ function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Регистрация</Text>
+    <ImageBackground
+      source={require("./assets/dark.jpg")}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>Регистрация</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Имя пользователя"
-        value={username}
-        onChangeText={setUsername}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Имя пользователя"
+          value={username}
+          onChangeText={setUsername}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Пароль"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Пароль"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Зарегистрироваться</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Зарегистрироваться</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+  },
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   header: {
     fontSize: 24,
@@ -88,7 +100,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     width: "100%",
-    marginBottom: 10,
   },
   buttonText: {
     color: "#fff",

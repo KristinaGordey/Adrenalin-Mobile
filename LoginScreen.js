@@ -5,6 +5,7 @@ import {
   TextInput,
   SafeAreaView,
   TouchableOpacity,
+  ImageBackground,
 } from "react-native";
 import axios from "axios";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,10 +27,9 @@ function LoginScreen({ navigation }) {
       const { message, userId, username } = response.data;
 
       if (message === "Login successful") {
-        // Убедись, что передаешь userId и username в navigation
         navigation.navigate("Menu", {
-          username, // Передаем username
-          userId, // Передаем userId
+          username,
+          userId,
         });
         console.log(userId);
       }
@@ -42,42 +42,53 @@ function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Вход</Text>
+    <ImageBackground
+      source={require("./assets/dark.jpg")}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.header}>Вход</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Имя пользователя"
-        value={username}
-        onChangeText={setUsername}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Имя пользователя"
+          value={username}
+          onChangeText={setUsername}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Пароль"
-        secureTextEntry={true}
-        value={password}
-        onChangeText={setPassword}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Пароль"
+          secureTextEntry={true}
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Войти</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Войти</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.link}>Нет аккаунта? Зарегистрироваться</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.link}>Нет аккаунта? Зарегистрироваться</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+  },
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   header: {
     fontSize: 24,

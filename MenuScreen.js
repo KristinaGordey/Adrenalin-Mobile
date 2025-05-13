@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ImageBackground,
+  Image,
+} from "react-native";
+import { useTranslation } from "react-i18next";
 
 export default function MenuScreen({ route, navigation }) {
   const { username, userId } = route.params || {};
@@ -7,6 +15,7 @@ export default function MenuScreen({ route, navigation }) {
 
   const [showMessage, setShowMessage] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { t, i18n } = useTranslation(); // используем useTranslation
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -15,45 +24,77 @@ export default function MenuScreen({ route, navigation }) {
 
     return () => clearTimeout(timer);
   }, []);
-  useEffect(() => {
-    console.log("userId из MenuScreen:", userId);
-  }, []);
 
   const toggleTheme = () => {
     setIsDarkMode((prevMode) => !prevMode);
   };
 
+  const toggleLanguage = () => {
+    const newLang = i18n.language === "ru" ? "en" : "ru";
+    i18n.changeLanguage(newLang);
+  };
+
   const styles = isDarkMode ? darkStyles : lightStyles;
 
   return (
-    <View style={styles.container}>
-      {showMessage ? (
-        <Text style={styles.message}>Добро пожаловать, {username}!</Text>
-      ) : (
-        <>
-          <Text style={styles.header}>MyAdrenalin</Text>
+    <ImageBackground
+      source={
+        isDarkMode ? require("./assets/dark.jpg") : require("./assets/lite.jpg")
+      }
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        {showMessage ? (
+          <Text style={styles.message}>{t("welcome", { username })}</Text>
+        ) : (
+          <>
+            <Image source={require("./assets/zip.png")} style={styles.logo} />
+            <Text style={styles.header}>MyAdrenalin</Text>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("DiaryTraining", { userId })}
-          >
-            <Text style={styles.buttonText}>Дневник тренировок</Text>
-          </TouchableOpacity>
-          {/* Кнопка для перехода на экран таймера */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("CycleTimer")}
-          >
-            <Text style={styles.buttonText}>Таймер тренировки</Text>
-          </TouchableOpacity>
-        </>
-      )}
-      <TouchableOpacity style={styles.themeButton} onPress={toggleTheme}>
-        <Text style={styles.themeButtonText}>
-          {isDarkMode ? "Светлая тема" : "Тёмная тема"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("DiaryTraining", { userId })}
+            >
+              <Text style={styles.buttonText}>{t("diary")}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("CycleTimer")}
+            >
+              <Text style={styles.buttonText}>{t("timer")}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("VideoExample")}
+            >
+              <Text style={styles.buttonText}>{t("video")}</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        <TouchableOpacity style={styles.themeButton} onPress={toggleTheme}>
+          <Image
+            source={
+              isDarkMode
+                ? require("./assets/sun.png")
+                : require("./assets/moon.png")
+            }
+            style={styles.themeButtonImage}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.languageButton}
+          onPress={toggleLanguage}
+        >
+          <Text style={styles.languageButtonText}>
+            {i18n.language === "ru" ? "EN" : "RU"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ImageBackground>
   );
 }
 
@@ -62,9 +103,14 @@ const lightStyles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8f8f8",
     paddingHorizontal: 20,
   },
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+
   message: {
     fontSize: 24,
     fontWeight: "bold",
@@ -91,7 +137,7 @@ const lightStyles = StyleSheet.create({
     fontWeight: "bold",
   },
   themeButton: {
-    backgroundColor: "#ccc",
+    backgroundColor: "transparent",
     position: "absolute",
     bottom: 20,
     right: 20,
@@ -105,16 +151,46 @@ const lightStyles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
+  themeButtonImage: {
+    width: 30,
+    height: 30,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+  },
+  languageButton: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    backgroundColor: "#5fd1a5",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+  },
+
+  languageButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
 const darkStyles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, // гарантируем, что контейнер занимает всю доступную высоту
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#333",
     paddingHorizontal: 20,
   },
+
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+
   message: {
     fontSize: 24,
     fontWeight: "bold",
@@ -144,7 +220,7 @@ const darkStyles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    backgroundColor: "#555",
+    backgroundColor: "transparent",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -153,5 +229,29 @@ const darkStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
+  },
+  themeButtonImage: {
+    width: 30,
+    height: 30,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+  },
+  languageButton: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    backgroundColor: "#5fd1a5",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 5,
+  },
+
+  languageButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
